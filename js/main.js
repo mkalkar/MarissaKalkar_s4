@@ -1,5 +1,5 @@
 
-// SVG Size
+//SVG Size
 var width = 700,
 	height = 500;
 
@@ -8,13 +8,15 @@ var width = 700,
 // Load CSV file
 d3.csv('data/wealth-health-2014.csv').then(function(data) {
 
-	// Analyze the dataset in the web console
 
+
+	//sort the data
 	console.log("Countries: " + data.length)
 	data.sort(function(x, y){
-   return d3.ascending(x.Population, y.Population);
+   return x["Population"] - y["Population"];
 	})
-	console.log(data)
+
+	//turn proper things form string to int
 	data.forEach(function(item,index){
 		item["Population"] = +item["Population"]
 		item["LifeExpectancy"] = +item["LifeExpectancy"]
@@ -22,8 +24,14 @@ d3.csv('data/wealth-health-2014.csv').then(function(data) {
 
 	});
 
+	// Margin object with properties for the four directions
+	let margin = {top: 20, right: 10, bottom: 20, left: 10};
 
-	console.log(data)
+	// Width and height as the inner dimensions of the chart area
+	let widthInner = 700 - margin.left - margin.right,
+	    heightInner = 500 - margin.top - margin.bottom;
+
+
 	// Returns the minimum value in a given array (= 6900)
 	var minIncome = d3.min(data, function(d) {
 	  return d.Income;
@@ -47,14 +55,18 @@ d3.csv('data/wealth-health-2014.csv').then(function(data) {
 	// console.log(maxIncome);
 	// console.log(minIncome);
 	// Creating a scale function
-	let incomeScale = d3.scaleLinear()
+
+
+
+	let incomeScale = d3.scaleLog()
 	  .domain([minIncome , maxIncome])
-	  .range([padding, width-padding]);
+	  .range([50, width])
+
 
 
 	let lifeExpectancyScale = d3.scaleLinear()
 		.domain([minLifeEx , maxLifeEx ])
-		.range([height - padding, padding]);
+		.range([height, 0]);
 
 		var maxPopulation = d3.max(data, function(d) {
 			return d.Population;
@@ -68,10 +80,21 @@ d3.csv('data/wealth-health-2014.csv').then(function(data) {
 			.domain([minPopulation , maxPopulation])
 			.range([4, 30]);
 
-		var svg = d3.select('#chart-area')
-			.append("svg")
-			.attr("height", height)
-			.attr("width", width);
+
+
+			var colorScale = d3.scaleOrdinal()
+		    .range(["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]);
+
+				colorScale.domain(data.map(function(d) {
+						return d.Region;
+				}));
+
+			var svg = d3.select('#chart-area')
+				.append("svg")
+				.attr("width", widthInner + margin.left + margin.right)
+			 	.attr("height", heightInner + margin.top + margin.bottom)
+			 	.append("g")
+			 	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 
 		  var circles = svg.selectAll("circle")
@@ -84,8 +107,8 @@ d3.csv('data/wealth-health-2014.csv').then(function(data) {
 		      .attr("cx", function(d){ return incomeScale(d.Income); })
 		     	.attr("cy", function(d){ return lifeExpectancyScale(d.LifeExpectancy); })
 					.attr("r", function(d){ return populationScale(d.Population); })
-					.attr("stroke", "green")
-					.attr("fill", "green")
+					.attr("stroke", "black")
+					.attr("fill", function(d){ return colorScale(d.Region); })
 
 					// Create an axis function specifying orientation (top, bottom, left, right)
 			let xAxis = d3.axisBottom();
@@ -112,7 +135,7 @@ d3.csv('data/wealth-health-2014.csv').then(function(data) {
 			svg.append("g")
 		  .attr("class", "axis y-axis")
 		  .call(yAxis)
-			.attr("transform", "translate(40, 0)")
+			.attr("transform", "translate(42, -15)")
 
 			//y label
 			svg.append("text")
@@ -126,13 +149,13 @@ d3.csv('data/wealth-health-2014.csv').then(function(data) {
 			svg.append("text")
 	    .attr("class", "x label")
 	    .attr("text-anchor", "end")
-	    .attr("x", width)
-	    .attr("y", height - 6)
+	    .attr("x", widthInner)
+	    .attr("y", heightInner - 6)
 	    .text("Income per Person (GDP per capita)");
 
 
 
-		
+
 
 
 });
