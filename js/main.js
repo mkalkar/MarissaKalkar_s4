@@ -114,7 +114,8 @@ d3.csv('data/wealth-health-2014.csv').then(function(data) {
 			let xAxis = d3.axisBottom();
 
 			// Pass in the scale function
-			xAxis.scale(incomeScale);
+			xAxis.scale(incomeScale)
+			.tickArguments([6, "s"]);
 
 			let yAxis = d3.axisLeft();
 
